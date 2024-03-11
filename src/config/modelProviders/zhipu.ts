@@ -11,6 +11,7 @@ const ZhiPu: ModelProviderCard = {
       // functionCall: true,
       id: 'glm-4',
       tokens: 128_000,
+      vision: true,
     },
     {
       description:

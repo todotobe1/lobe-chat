@@ -10,6 +10,7 @@ import { TraceEventType, TraceNameMap } from '@/const/trace';
 import { CreateMessageParams } from '@/database/models/message';
 import { chatService } from '@/services/chat';
 import { messageService } from '@/services/message';
+import { preChatService } from '@/services/prechat';
 import { topicService } from '@/services/topic';
 import { traceService } from '@/services/trace';
 import { chatHelpers } from '@/store/chat/helpers';
@@ -432,6 +433,60 @@ export const chatMessage: StateCreator<
     const { startAnimation, stopAnimation, outputQueue, isAnimationActive } =
       createSmoothMessage(assistantId);
 
+    // 6. get tongue label
+    if (
+      preprocessMsgs !== null &&
+      preprocessMsgs !== undefined &&
+      Array.isArray(preprocessMsgs) &&
+      preprocessMsgs.length > 0
+    ) {
+      const tongueLabel = await preChatService.fetchTongueLabel(preprocessMsgs);
+
+      if (tongueLabel && tongueLabel !== null && tongueLabel !== undefined) {
+        console.info('[Chat] tongueLabel[data][tag]', tongueLabel);
+        console.info('[Chat] tongueLabel[data][tag]', tongueLabel['data']['tag']);
+
+        // 苔色
+        let coatingColorArr = tongueLabel['data']['tag']['coatingColor'];
+        let coatingColorFeature = coatingColorArr.map((item: { feature: any }) => item.feature);
+        let coatingColorStr = '苔色:' + coatingColorFeature.join('、');
+
+        // 舌苔腻腐
+        let coatingGreasyRotArr = tongueLabel['data']['tag']['coatingGreasyRot'];
+        let coatingGreasyRotFeature = coatingGreasyRotArr.map(
+          (item: { feature: any }) => item.feature,
+        );
+        let coatingGreasyRotStr = '舌苔腻腐:' + coatingGreasyRotFeature.join('、');
+
+        // 舌苔润燥
+        let coatingMoistureArr = tongueLabel['data']['tag']['coatingMoisture'];
+        let coatingMoistureFeature = coatingMoistureArr.map(
+          (item: { feature: any }) => item.feature,
+        );
+        let coatingMoistureStr = '舌苔润燥:' + coatingMoistureFeature.join('、');
+
+        // 苔质
+        let coatingNatureArr = tongueLabel['data']['tag']['coatingNature'];
+        let coatingNatureFeature = coatingNatureArr.map((item: { feature: any }) => item.feature);
+        let coatingNatureStr = '苔质:' + coatingNatureFeature.join('、');
+
+        // 舌色
+        let tongueColorArr = tongueLabel['data']['tag']['tongueColor'];
+        let tongueColorFeature = tongueColorArr.map((item: { feature: any }) => item.feature);
+        let tongueColorStr = '舌色:' + tongueColorFeature.join('、');
+
+        // 舌体特征
+        let tongueShapeArr = tongueLabel['data']['tag']['tongueShape'];
+        let tongueShapeFeature = tongueShapeArr.map((item: { feature: any }) => item.feature);
+        let tongueShapeStr = '舌体特征:' + tongueShapeFeature.join('、');
+
+        let content = preprocessMsgs[preprocessMsgs.length - 1].content;
+        preprocessMsgs[preprocessMsgs.length - 1].content =
+          `${content}, 舌象标签：${coatingColorStr},${coatingGreasyRotStr},${coatingMoistureStr},${coatingNatureStr},${tongueColorStr},${tongueShapeStr}`;
+      }
+    }
+
+    // 7. create assistant message
     await chatService.createAssistantMessageStream({
       abortController,
       params: {
