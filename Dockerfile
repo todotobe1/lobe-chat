@@ -21,7 +21,7 @@ WORKDIR /app
 COPY package.json ./
 
 # If you want to build docker in China
-# RUN npm config set registry https://registry.npmmirror.com/
+RUN npm config set registry https://registry.npmmirror.com/
 RUN pnpm i
 
 COPY . .
@@ -50,11 +50,11 @@ COPY --from=sharp --chown=nextjs:nodejs /app/node_modules/.pnpm ./node_modules/.
 
 USER nextjs
 
-EXPOSE 3210
+EXPOSE 3211
 
 # set hostname to localhost
 ENV HOSTNAME "0.0.0.0"
-ENV PORT=3210
+ENV PORT=3211
 
 # General Variables
 ENV ACCESS_CODE ""
